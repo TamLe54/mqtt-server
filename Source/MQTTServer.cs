@@ -1,14 +1,16 @@
+using System.Text;
 using System.Text.Json;
 using MQTTnet.AspNetCore;
+using MQTTnet.Client;
 using MQTTnet.Packets;
 using MQTTnet.Protocol;
 using MQTTnet.Server;
 
 namespace MQTTnet.Samples.Server
 {
-    public static class CombinedServerSamples
+    public static class MQTTServer
     {
-        public static async Task StartServerWithWebSocketsAndPersistRetainedMessages()
+        public static async Task Start()
         {
             var storePath = Path.Combine(Path.GetTempPath(), "RetainedMessages.json");
 
@@ -70,6 +72,8 @@ namespace MQTTnet.Samples.Server
                     return Task.CompletedTask;
                 };
 
+
+
                 var host = Host.CreateDefaultBuilder(Array.Empty<string>())
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
@@ -79,7 +83,7 @@ namespace MQTTnet.Samples.Server
                             o.ListenAnyIP(5000); // Default HTTP pipeline
                         });
 
-                        webBuilder.UseStartup<CombinedStartup>();
+                        webBuilder.UseStartup<MqttServerStartup>();
                     });
 
                 await server.StartAsync();
@@ -108,9 +112,20 @@ namespace MQTTnet.Samples.Server
                 Console.WriteLine($"Client '{eventArgs.ClientId}' wants to connect. Accepting!");
                 return Task.CompletedTask;
             }
+
+            public Task OnClientDisconnected(ClientDisconnectedEventArgs eventArgs)
+            {
+                Console.WriteLine($"Client '{eventArgs.ClientId}' disconnected.");
+                return Task.CompletedTask;
+            }
+            public Task OnApplicationMessageReceived(InterceptingPublishEventArgs eventArgs)
+            {
+                Console.WriteLine($"Message received from client '{eventArgs.ClientId}'. Topic: {eventArgs.ApplicationMessage.Topic}. Payload: {Encoding.UTF8.GetString(eventArgs.ApplicationMessage.PayloadSegment.ToArray())}");
+                return Task.CompletedTask;
+            }
         }
 
-        sealed class CombinedStartup
+        sealed class MqttServerStartup
         {
             public void Configure(
                 IApplicationBuilder app,
@@ -134,6 +149,10 @@ namespace MQTTnet.Samples.Server
                 {
                     server.ValidatingConnectionAsync += mqttController.ValidateConnection;
                     server.ClientConnectedAsync += mqttController.OnClientConnected;
+                    server.ClientDisconnectedAsync += mqttController.OnClientDisconnected;
+                    server.InterceptingPublishAsync += mqttController.OnApplicationMessageReceived;
+
+
                 });
             }
 

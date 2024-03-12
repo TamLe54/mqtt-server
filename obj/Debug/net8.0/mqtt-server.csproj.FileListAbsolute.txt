@@ -33,3 +33,4 @@ D:\project\Recornect\mqtt-server\obj\Debug\net8.0\refint\mqtt-server.dll
 D:\project\Recornect\mqtt-server\obj\Debug\net8.0\mqtt-server.pdb
 D:\project\Recornect\mqtt-server\obj\Debug\net8.0\mqtt-server.genruntimeconfig.cache
 D:\project\Recornect\mqtt-server\obj\Debug\net8.0\ref\mqtt-server.dll
+D:\project\Recornect\mqtt-server\obj\Debug\net8.0\mqtt-server.sourcelink.json
